@@ -1,0 +1,17 @@
+{
+    "name": "chainlance-contracts",
+    "version": "1.0.0",
+    "license": "MIT",
+    "scripts": {
+        "test": "hardhat test",
+        "compile": "hardhat compile",
+        "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia"
+    },
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+        "hardhat": "^2.19.4",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3",
+        "dotenv": "^16.3.1"
+    }
+}
