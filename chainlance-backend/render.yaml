@@ -3,7 +3,7 @@ services:
     name: chainlance-backend
     env: node
     buildCommand: npm install && npx prisma generate
-    startCommand: npx prisma migrate deploy && npm start
+    startCommand: npm run deploy
     envVars:
       - key: NODE_ENV
         value: production
