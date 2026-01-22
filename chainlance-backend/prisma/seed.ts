@@ -1,262 +1,200 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL || 'file:./dev.db' });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting seed...');
+    console.log('🌱 Starting simplified seed...');
 
-    // Create sample users
-    const alice = await prisma.user.upsert({
-        where: { walletAddress: '0x1234567890123456789012345678901234567890' },
-        update: {},
-        create: {
+    // CLEAN DATA
+    try {
+        await (prisma as any).escrowTransaction.deleteMany(); console.log('1. EscrowTransaction cleared');
+        await prisma.dispute.deleteMany(); console.log('2. Dispute cleared');
+        await prisma.message.deleteMany(); console.log('3. Message cleared');
+        await prisma.milestone.deleteMany(); console.log('4. Milestone cleared');
+        await prisma.project.deleteMany(); console.log('5. Project cleared');
+        await prisma.proposal.deleteMany(); console.log('6. Proposal cleared');
+        await prisma.job.deleteMany(); console.log('7. Job cleared');
+        await prisma.user.deleteMany(); console.log('8. User cleared');
+        console.log('🗑️ Database cleared');
+    } catch (e) {
+        console.error('❌ Database clearing failed at some step:', (e as any).message);
+        throw e;
+    }
+
+    // Users
+    console.log('👤 Seeding Alice...');
+    const alice = await prisma.user.create({
+        data: {
             walletAddress: '0x1234567890123456789012345678901234567890',
-            email: 'alice@example.com',
-            displayName: 'Alice Johnson',
-            role: 'client',
-            bio: 'Startup founder looking for quality developers',
-            skills: JSON.stringify([]),
-        },
+            displayName: 'Alice (Client)',
+            role: 'client' as any,
+            bio: 'Startup founder.',
+        }
     });
 
-    const bob = await prisma.user.upsert({
-        where: { walletAddress: '0x2345678901234567890123456789012345678901' },
-        update: {},
-        create: {
+    console.log('👤 Seeding Bob...');
+    const bob = await prisma.user.create({
+        data: {
             walletAddress: '0x2345678901234567890123456789012345678901',
-            email: 'bob@example.com',
-            displayName: 'Bob Smith',
-            role: 'freelancer',
-            bio: 'Full-stack developer with 5 years experience',
-            skills: JSON.stringify(['React', 'Node.js', 'Solidity', 'PostgreSQL']),
-        },
+            displayName: 'Bob (Freelancer)',
+            role: 'freelancer' as any,
+            bio: 'Senior Engineer.',
+            skills: JSON.stringify(['React', 'Solidity']) as any,
+        }
     });
 
-    const carol = await prisma.user.upsert({
-        where: { walletAddress: '0x3456789012345678901234567890123456789012' },
-        update: {},
-        create: {
-            walletAddress: '0x3456789012345678901234567890123456789012',
-            email: 'carol@example.com',
-            displayName: 'Carol Lee',
-            role: 'both',
-            bio: 'Designer and occasional client',
-            skills: JSON.stringify(['UI/UX', 'Figma', 'React']),
-        },
-    });
+    console.log('✅ Users seeded');
 
-    const devMaster = await prisma.user.upsert({
-        where: { walletAddress: '0x4567890123456789012345678901234567890123' },
-        update: {},
-        create: {
-            walletAddress: '0x4567890123456789012345678901234567890123',
-            displayName: 'Dev Master',
-            role: 'freelancer',
-            bio: 'Smart contract specialist',
-            skills: JSON.stringify(['Solidity', 'Web3', 'Hardhat']),
-        },
-    });
-
-    console.log('✅ Created users:', { alice, bob, carol, devMaster });
-
-    // Create sample jobs
-    const job1 = await prisma.job.create({
+    // Jobs
+    await prisma.job.create({
         data: {
             clientId: alice.id,
-            title: 'Build React Dashboard',
-            description: 'Need a modern admin dashboard with charts and analytics. Must be responsive and follow Material Design guidelines.',
-            budget: 2.5,
-            status: 'open',
-            requiredSkills: JSON.stringify(['React', 'TypeScript', 'TailwindCSS']),
-            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        },
+            title: 'Build Decentralized Dashboard',
+            description: 'Looking for a dev to build a real-time DeFi dashboard.',
+            budget: '1500',
+            status: 'open' as any,
+            requiredSkills: JSON.stringify(['React', 'Web3.js']) as any,
+        }
     });
 
-    const job2 = await prisma.job.create({
+    await prisma.job.create({
         data: {
             clientId: alice.id,
-            title: 'Smart Contract Audit',
-            description: 'Security audit for ERC20 token contract. Need comprehensive report with vulnerabilities and recommendations.',
-            budget: 5.0,
-            status: 'open',
-            requiredSkills: JSON.stringify(['Solidity', 'Security']),
-            deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-        },
+            title: 'Smart Contract Security Audit',
+            description: 'Audit our new lending protocol for potential vulnerabilities.',
+            budget: '2400',
+            status: 'open' as any,
+            requiredSkills: JSON.stringify(['Solidity', 'Security']) as any,
+        }
     });
 
-    const job3 = await prisma.job.create({
+    await prisma.job.create({
         data: {
-            clientId: carol.id,
-            title: 'Landing Page Design',
-            description: 'Modern landing page for SaaS product. Looking for clean, professional design.',
-            budget: 1.2,
-            status: 'open',
-            requiredSkills: JSON.stringify(['Figma', 'UI/UX']),
-            deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
-        },
+            clientId: bob.id, // Bob as client
+            title: 'Frontend Component Library',
+            description: 'Need a set of reusable Tailwind components for a freelancer platform.',
+            budget: '800',
+            status: 'open' as any,
+        }
     });
 
-    console.log('✅ Created jobs:', { job1, job2, job3 });
-
-    // Create sample proposals
-    const proposal1 = await prisma.proposal.create({
+    await prisma.job.create({
         data: {
-            jobId: job1.id,
+            clientId: alice.id,
+            title: 'Post-Quantum Encryption Research',
+            description: 'Experimental research job.',
+            budget: '5000',
+            status: 'open' as any,
+        }
+    });
+
+    console.log('✅ Jobs seeded');
+
+    // Disputed Project
+    const disputedJob = await prisma.job.create({
+        data: {
+            clientId: alice.id,
+            title: 'Complex Lending Protocol',
+            description: 'High stakes development.',
+            budget: '5000',
+            status: 'in_progress' as any,
+        }
+    });
+
+    const proposal = await prisma.proposal.create({
+        data: {
+            jobId: disputedJob.id,
             freelancerId: bob.id,
-            coverLetter:
-                'I have built 10+ React dashboards with similar requirements. My expertise includes TypeScript, Material UI, and Chart.js. I can deliver a pixel-perfect, responsive dashboard in 3 weeks. Portfolio: example.com/portfolio',
-            proposedAmount: 2.3,
-            estimatedDuration: 21,
-            status: 'pending',
-        },
+            coverLetter: 'Expert auditor.',
+            proposedAmount: '5000',
+            status: 'accepted' as any,
+        }
     });
 
-    const proposal2 = await prisma.proposal.create({
+    const project = await prisma.project.create({
         data: {
-            jobId: job2.id,
-            freelancerId: devMaster.id,
-            coverLetter:
-                'Certified smart contract auditor with 50+ audits completed. I specialize in ERC20 tokens and have discovered critical vulnerabilities in production contracts. I use Slither, Mythril, and manual code review for comprehensive analysis.',
-            proposedAmount: 4.8,
-            estimatedDuration: 10,
-            status: 'pending',
-        },
-    });
-
-    const proposal3 = await prisma.proposal.create({
-        data: {
-            jobId: job1.id,
-            freelancerId: carol.id,
-            coverLetter:
-                'I can help with the UI/UX design and React implementation. I have experience building dashboards for analytics platforms. I focus on user experience and accessibility.',
-            proposedAmount: 2.4,
-            estimatedDuration: 25,
-            status: 'pending',
-        },
-    });
-
-    console.log('✅ Created proposals:', { proposal1, proposal2, proposal3 });
-
-    // Accept proposal2 and create a project
-    await prisma.proposal.update({
-        where: { id: proposal2.id },
-        data: { status: 'accepted' },
-    });
-
-    await prisma.job.update({
-        where: { id: job2.id },
-        data: { status: 'in_progress' },
-    });
-
-    const project1 = await prisma.project.create({
-        data: {
-            jobId: job2.id,
-            proposalId: proposal2.id,
+            jobId: disputedJob.id,
+            proposalId: proposal.id,
             clientId: alice.id,
-            freelancerId: devMaster.id,
-            totalAmount: 4.8,
-            status: 'active',
-        },
+            freelancerId: bob.id,
+            totalAmount: '5000',
+            status: 'disputed' as any,
+        }
     });
 
-    console.log('✅ Created project:', project1);
-
-    // Create milestones
-    const milestone1 = await prisma.milestone.create({
+    const milestone = await prisma.milestone.create({
         data: {
-            projectId: project1.id,
-            title: 'Initial Security Review',
-            description: 'Review contract code and identify potential vulnerabilities using automated tools and manual analysis',
-            amount: 1.6,
-            status: 'pending',
-            dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-        },
+            projectId: project.id,
+            title: 'Core Engine Development',
+            description: 'The main logic.',
+            amount: '5000',
+            status: 'disputed' as any,
+        }
     });
 
-    const milestone2 = await prisma.milestone.create({
+    await prisma.dispute.create({
         data: {
-            projectId: project1.id,
-            title: 'Detailed Audit Report',
-            description: 'Comprehensive audit report with vulnerability classifications, severity ratings, and detailed recommendations',
-            amount: 2.0,
-            status: 'pending',
-            dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
-        },
+            milestoneId: milestone.id,
+            raisedBy: alice.id,
+            reason: 'Delays and quality issues.',
+            status: 'open' as any,
+        }
     });
 
-    const milestone3 = await prisma.milestone.create({
+    // Completed Project
+    console.log('📦 Seeding Completed Project...');
+    const compJob = await prisma.job.create({
         data: {
-            projectId: project1.id,
-            title: 'Final Verification',
-            description: 'Verify all fixes have been properly implemented and provide final security clearance',
-            amount: 1.2,
-            status: 'pending',
-            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-        },
+            clientId: alice.id,
+            title: 'Landing Page SEO',
+            description: 'Optimize our landing page.',
+            budget: '300',
+            status: 'completed' as any,
+        }
     });
 
-    console.log('✅ Created milestones:', { milestone1, milestone2, milestone3 });
-
-    // Fund milestone1 (simulate)
-    await prisma.milestone.update({
-        where: { id: milestone1.id },
+    const compProp = await prisma.proposal.create({
         data: {
-            escrowContractAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-            status: 'funded',
-        },
+            jobId: compJob.id,
+            freelancerId: bob.id,
+            coverLetter: 'I am an SEO expert.',
+            proposedAmount: '300',
+            status: 'accepted' as any,
+        }
     });
 
-    const transaction1 = await prisma.escrowTransaction.create({
+    const compProj = await prisma.project.create({
         data: {
-            milestoneId: milestone1.id,
-            transactionHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-            eventType: 'funded',
-            fromAddress: alice.walletAddress,
-            amount: 1.6,
-            blockNumber: 12345678n,
-            timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        },
+            jobId: compJob.id,
+            proposalId: compProp.id,
+            clientId: alice.id,
+            freelancerId: bob.id,
+            totalAmount: '300',
+            status: 'completed' as any,
+            completedAt: new Date(),
+        }
     });
+    console.log('✅ Project created:', compProj.id);
 
-    console.log('✅ Created escrow transaction:', transaction1);
-
-    // Create sample messages
-    const message1 = await prisma.message.create({
+    console.log('📦 Seeding Milestone for Completed Project...');
+    await prisma.milestone.create({
         data: {
-            projectId: project1.id,
-            senderId: alice.id,
-            content: 'Hi! Looking forward to working with you on this audit. Please let me know if you need any additional information about the contract.',
-            readAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-        },
+            projectId: compProj.id,
+            title: 'Technical SEO Audit',
+            description: 'Full audit.',
+            amount: '300',
+            status: 'paid' as any,
+        }
     });
 
-    const message2 = await prisma.message.create({
-        data: {
-            projectId: project1.id,
-            senderId: devMaster.id,
-            content: 'Thanks! I have started the initial review. Will update you by end of day with preliminary findings.',
-            readAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-        },
-    });
-
-    const message3 = await prisma.message.create({
-        data: {
-            projectId: project1.id,
-            senderId: devMaster.id,
-            content: 'Found a few potential issues in the transfer function. Can we schedule a call to discuss the findings in detail?',
-        },
-    });
-
-    console.log('✅ Created messages:', { message1, message2, message3 });
-
+    console.log('✅ Disputes and Completed projects seeded');
     console.log('🎉 Seed completed successfully!');
 }
 
 main()
     .catch((e) => {
-        console.error('❌ Error during seed:', e);
+        if (e.code) console.error('❌ Prisma Error Code:', e.code);
+        if (e.meta) console.error('❌ Prisma Error Meta:', e.meta);
+        console.error('❌ Full Error:', e);
         process.exit(1);
     })
     .finally(async () => {

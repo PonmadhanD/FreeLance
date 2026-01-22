@@ -169,4 +169,129 @@ export class MilestonesController {
             res.status(500).json({ error: 'Internal server error' });
         }
     }
+
+    /**
+     * PATCH /milestones/:id/approve
+     * Client approves milestone work and triggers release
+     */
+    static async approveMilestone(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id as string;
+            const userId = req.user?.userId;
+
+            const milestone = await prisma.milestone.findUnique({
+                where: { id },
+                include: { project: true }
+            });
+
+            if (!milestone) {
+                res.status(404).json({ error: 'Milestone not found' });
+                return;
+            }
+
+            if (milestone.project.clientId !== userId) {
+                res.status(403).json({ error: 'Unauthorized. Only client can approve.' });
+                return;
+            }
+
+            if (milestone.status !== 'submitted') {
+                res.status(400).json({ error: 'Milestone must be submitted before approval' });
+                return;
+            }
+
+            const updated = await prisma.milestone.update({
+                where: { id },
+                data: {
+                    status: 'paid', // For MVP, we mark as paid immediately. Production would wait for tx.
+                    approvedAt: new Date(),
+                },
+            });
+
+            res.json(updated);
+        } catch (error) {
+            console.error('Error approving milestone:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    /**
+     * POST /milestones/:id/dispute
+     * Participant raises a dispute
+     */
+    static async raiseDispute(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id as string;
+            const { reason } = req.body;
+            const userId = req.user?.userId;
+
+            const milestone = await prisma.milestone.findUnique({
+                where: { id },
+                include: { project: true }
+            });
+
+            if (!milestone) {
+                res.status(404).json({ error: 'Milestone not found' });
+                return;
+            }
+
+            if (milestone.project.clientId !== userId && milestone.project.freelancerId !== userId) {
+                res.status(403).json({ error: 'Unauthorized' });
+                return;
+            }
+
+            const updated = await prisma.milestone.update({
+                where: { id },
+                data: {
+                    status: 'disputed',
+                },
+            });
+
+            // Log dispute (could create a Dispute table record here)
+            console.log(`Dispute raised for milestone ${id} by user ${userId}. Reason: ${reason}`);
+
+            res.json(updated);
+        } catch (error) {
+            console.error('Error raising dispute:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    /**
+     * PATCH /milestones/:id/refund
+     * Admin resolves dispute by refunding client
+     */
+    static async refundMilestone(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id as string;
+            const userId = req.user?.userId;
+
+            // Check if user is admin (simplified for MVP)
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user?.role !== 'admin' && userId !== 'admin-id') { // Add proper admin check
+                res.status(403).json({ error: 'Unauthorized. Admin only.' });
+                return;
+            }
+
+            const milestone = await prisma.milestone.findUnique({
+                where: { id },
+            });
+
+            if (!milestone) {
+                res.status(404).json({ error: 'Milestone not found' });
+                return;
+            }
+
+            const updated = await prisma.milestone.update({
+                where: { id },
+                data: {
+                    status: 'refunded',
+                },
+            });
+
+            res.json(updated);
+        } catch (error) {
+            console.error('Error refunding milestone:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
 }

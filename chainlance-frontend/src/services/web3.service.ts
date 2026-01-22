@@ -11,8 +11,26 @@ export const Web3Service = {
     async connectWallet(): Promise<string> {
         if (!window.ethereum) throw new Error("Metamask not found");
         const provider = new ethers.BrowserProvider(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
         const signer = await provider.getSigner();
         return await signer.getAddress();
+    },
+
+    async isWalletConnected(): Promise<string | null> {
+        if (!window.ethereum) return null;
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.listAccounts();
+        return accounts.length > 0 ? accounts[0].address : null;
+    },
+
+    async getNetwork(): Promise<{ chainId: bigint; name: string }> {
+        if (!window.ethereum) throw new Error("Metamask not found");
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        return {
+            chainId: network.chainId,
+            name: network.name
+        };
     },
 
     async getContract() {

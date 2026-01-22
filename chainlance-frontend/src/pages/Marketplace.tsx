@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TrustBadge } from '../components/TrustBadge';
 import { JobsService } from '../services/jobs.service';
 import type { Job } from '../services/jobs.service';
 import { AuthService } from '../services/auth.service';
 import { SeedService } from '../services/seed.service';
+import { Web3Service } from '../services/web3.service';
 
 export default function Marketplace() {
+    const navigate = useNavigate();
     const [walletConnected, setWalletConnected] = useState(false);
     const [loading, setLoading] = useState(false);
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -50,21 +53,13 @@ export default function Marketplace() {
     const connectWallet = async () => {
         setLoading(true);
         try {
-            // Mock address for demo purposes if no extension
-            const mockAddress = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F";
-            let address = mockAddress;
-
-            // Basic Window Ethereum check
-            if ((window as any).ethereum) {
-                const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-                address = accounts[0];
-            }
-
+            const address = await Web3Service.connectWallet();
             const user = await AuthService.loginWithWallet(address);
             setUserAddress(user.walletAddress);
             setWalletConnected(true);
         } catch (error) {
             console.error("Wallet connection failed", error);
+            alert("Connection failed: " + (error as Error).message);
         } finally {
             setLoading(false);
         }
@@ -139,7 +134,12 @@ export default function Marketplace() {
                                 <span className="client-id">
                                     By: {job.client?.displayName || job.client?.walletAddress?.slice(0, 6) || "Client"}
                                 </span>
-                                <button className="apply-btn action-btn">Inspect Contract</button>
+                                <button
+                                    className="apply-btn action-btn"
+                                    onClick={() => navigate(`/job/${job.id}`)}
+                                >
+                                    Inspect Contract
+                                </button>
                             </div>
                         </div>
                     ))

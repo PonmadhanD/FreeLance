@@ -59,5 +59,25 @@ export const AuthService = {
         const response = await fetch(`${API_BASE_URL}/users/${walletAddress}`);
         if (!response.ok) return null;
         return response.json();
+    },
+
+    async updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {
+        const token = await this.getToken();
+        const response = await fetch(`${API_BASE_URL}/users/me`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) throw new Error("Failed to update profile");
+        const user = await response.json();
+
+        // Update local storage
+        localStorage.setItem('cl_user', JSON.stringify(user));
+
+        return user;
     }
 };

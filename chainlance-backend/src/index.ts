@@ -10,6 +10,8 @@ import proposalsRoutes from './routes/proposals.routes';
 import projectsRoutes from './routes/projects.routes';
 import milestonesRoutes from './routes/milestones.routes';
 import messagesRoutes from './routes/messages.routes';
+import adminRoutes from './routes/admin.routes';
+import debugRoutes from './routes/debug.routes';
 import { startEventPoller } from './workers/event-poller';
 import { startReconciliationWorker } from './workers/reconciliation';
 import { errorHandler } from './middleware/error.middleware';
@@ -37,6 +39,8 @@ app.use('/api/v1', proposalsRoutes);
 app.use('/api/v1/projects', projectsRoutes);
 app.use('/api/v1/milestones', milestonesRoutes);
 app.use('/api/v1', messagesRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/debug', debugRoutes);
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

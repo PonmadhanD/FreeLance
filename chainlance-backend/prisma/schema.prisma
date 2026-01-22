@@ -1,45 +1,29 @@
-// ============================================================
-// Prisma Schema for ChainLance
-// ============================================================
-// Database: SQLite
-// ORM: Prisma
-// ============================================================
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
-// MODELS
-// ============================================================
-
 model User {
-  id             String   @id @default(uuid())
-  walletAddress  String   @unique @map("wallet_address")
-  email          String?  @unique
-  displayName    String   @map("display_name")
-  role           String   // Enum: client, freelancer, both
-  bio            String?
-  skills         String   @default("[]") // SQLite stores JSON as string, or use Json type
-  // Actually Prisma supports Json type for SQLite too (serializing to string)
-  // But let's stick to Json type in Prisma, it handles serialization.
-  // Wait, previous schema had Json type. Let's try Json.
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  jobsPosted        Job[]                @relation("ClientJobs")
-  proposals         Proposal[]
-  projectsAsClient  Project[]            @relation("ClientProjects")
-  projectsAsFreelancer Project[]         @relation("FreelancerProjects")
-  disputesRaised    Dispute[]            @relation("DisputeRaiser")
-  disputesResolved  Dispute[]            @relation("DisputeResolver")
-  messagesSent      Message[]
+  id                   String     @id @default(uuid())
+  walletAddress        String     @unique @map("wallet_address")
+  email                String?    @unique
+  displayName          String     @map("display_name")
+  role                 String
+  bio                  String?
+  skills               String     @default("[]")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+  disputesResolved     Dispute[]  @relation("DisputeResolver")
+  disputesRaised       Dispute[]  @relation("DisputeRaiser")
+  jobsPosted           Job[]      @relation("ClientJobs")
+  messagesSent         Message[]
+  projectsAsFreelancer Project[]  @relation("FreelancerProjects")
+  projectsAsClient     Project[]  @relation("ClientProjects")
+  proposals            Proposal[]
 
   @@index([walletAddress])
   @@index([role])
@@ -47,45 +31,39 @@ model User {
 }
 
 model Job {
-  id              String     @id @default(uuid())
-  clientId        String     @map("client_id")
-  title           String
-  description     String
-  budget          Decimal
-  status          String     @default("open") // Enum: open, in_progress, completed, cancelled
-  requiredSkills  String     @default("[]") @map("required_skills") // Using String for JSON simple compat
-  deadline        DateTime?
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-
-  // Relations
-  client          User       @relation("ClientJobs", fields: [clientId], references: [id], onDelete: Restrict)
-  proposals       Proposal[]
-  projects        Project[]
+  id             String     @id @default(uuid())
+  clientId       String     @map("client_id")
+  title          String
+  description    String
+  budget         Decimal
+  status         String     @default("open")
+  requiredSkills String     @default("[]") @map("required_skills")
+  deadline       DateTime?
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  client         User       @relation("ClientJobs", fields: [clientId], references: [id])
+  projects       Project[]
+  proposals      Proposal[]
 
   @@index([clientId, status])
   @@index([status])
-  // @@index([createdAt(sort: Desc)]) -- Sort order not supported in standard index def in some versions, but Prisma might handle? 
-  // SQLite supports index sort order. keeping simple index.
-  @@index([createdAt]) 
+  @@index([createdAt])
   @@map("jobs")
 }
 
 model Proposal {
-  id                String          @id @default(uuid())
-  jobId             String          @map("job_id")
-  freelancerId      String          @map("freelancer_id")
-  coverLetter       String          @map("cover_letter")
-  proposedAmount    Decimal         @map("proposed_amount")
-  estimatedDuration Int?            @map("estimated_duration")
-  status            String          @default("pending") // pending, accepted, rejected, withdrawn
-  createdAt         DateTime        @default(now()) @map("created_at")
-  updatedAt         DateTime        @updatedAt @map("updated_at")
-
-  // Relations
-  job               Job             @relation(fields: [jobId], references: [id], onDelete: Restrict)
-  freelancer        User            @relation(fields: [freelancerId], references: [id], onDelete: Restrict)
+  id                String   @id @default(uuid())
+  jobId             String   @map("job_id")
+  freelancerId      String   @map("freelancer_id")
+  coverLetter       String   @map("cover_letter")
+  proposedAmount    Decimal  @map("proposed_amount")
+  estimatedDuration Int?     @map("estimated_duration")
+  status            String   @default("pending")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
   project           Project?
+  freelancer        User     @relation(fields: [freelancerId], references: [id])
+  job               Job      @relation(fields: [jobId], references: [id])
 
   @@unique([jobId, freelancerId])
   @@index([jobId, status])
@@ -94,24 +72,22 @@ model Proposal {
 }
 
 model Project {
-  id            String         @id @default(uuid())
-  jobId         String         @map("job_id")
-  proposalId    String         @unique @map("proposal_id")
-  clientId      String         @map("client_id")
-  freelancerId  String         @map("freelancer_id")
-  totalAmount   Decimal        @map("total_amount")
-  status        String         @default("active") // active, completed, disputed, cancelled
-  startedAt     DateTime       @default(now()) @map("started_at")
-  completedAt   DateTime?      @map("completed_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-
-  // Relations
-  job           Job            @relation(fields: [jobId], references: [id], onDelete: Restrict)
-  proposal      Proposal       @relation(fields: [proposalId], references: [id], onDelete: Restrict)
-  client        User           @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Restrict)
-  freelancer    User           @relation("FreelancerProjects", fields: [freelancerId], references: [id], onDelete: Restrict)
-  milestones    Milestone[]
-  messages      Message[]
+  id           String      @id @default(uuid())
+  jobId        String      @map("job_id")
+  proposalId   String      @unique @map("proposal_id")
+  clientId     String      @map("client_id")
+  freelancerId String      @map("freelancer_id")
+  totalAmount  Decimal     @map("total_amount")
+  status       String      @default("active")
+  startedAt    DateTime    @default(now()) @map("started_at")
+  completedAt  DateTime?   @map("completed_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  messages     Message[]
+  milestones   Milestone[]
+  freelancer   User        @relation("FreelancerProjects", fields: [freelancerId], references: [id])
+  client       User        @relation("ClientProjects", fields: [clientId], references: [id])
+  proposal     Proposal    @relation(fields: [proposalId], references: [id])
+  job          Job         @relation(fields: [jobId], references: [id])
 
   @@index([clientId, status])
   @@index([freelancerId, status])
@@ -120,23 +96,21 @@ model Project {
 }
 
 model Milestone {
-  id                     String            @id @default(uuid())
-  projectId              String            @map("project_id")
-  title                  String
-  description            String
-  amount                 Decimal
-  escrowContractAddress  String?           @unique @map("escrow_contract_address")
-  status                 String            @default("pending") // pending, funded, submitted, approved, paid, disputed, refunded
-  dueDate                DateTime?         @map("due_date")
-  submittedAt            DateTime?         @map("submitted_at")
-  approvedAt             DateTime?         @map("approved_at")
-  createdAt              DateTime          @default(now()) @map("created_at")
-  updatedAt              DateTime          @updatedAt @map("updated_at")
-
-  // Relations
-  project                Project           @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  escrowTransactions     EscrowTransaction[]
-  disputes               Dispute[]
+  id                    String              @id @default(uuid())
+  projectId             String              @map("project_id")
+  title                 String
+  description           String
+  amount                Decimal
+  escrowContractAddress String?             @unique @map("escrow_contract_address")
+  status                String              @default("pending")
+  dueDate               DateTime?           @map("due_date")
+  submittedAt           DateTime?           @map("submitted_at")
+  approvedAt            DateTime?           @map("approved_at")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+  disputes              Dispute[]
+  escrowTransactions    EscrowTransaction[]
+  project               Project             @relation(fields: [projectId], references: [id])
 
   @@index([projectId, status])
   @@index([escrowContractAddress])
@@ -144,18 +118,16 @@ model Milestone {
 }
 
 model EscrowTransaction {
-  id              String           @id @default(uuid())
-  milestoneId     String           @map("milestone_id")
-  transactionHash String           @unique @map("transaction_hash")
-  eventType       String           @map("event_type") // created, funded, released, refunded
-  fromAddress     String           @map("from_address")
+  id              String    @id @default(uuid())
+  milestoneId     String    @map("milestone_id")
+  transactionHash String    @unique @map("transaction_hash")
+  eventType       String    @map("event_type")
+  fromAddress     String    @map("from_address")
   amount          Decimal
-  blockNumber     BigInt           @map("block_number")
+  blockNumber     BigInt    @map("block_number")
   timestamp       DateTime
-  createdAt       DateTime         @default(now()) @map("created_at")
-
-  // Relations
-  milestone       Milestone        @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  milestone       Milestone @relation(fields: [milestoneId], references: [id])
 
   @@index([milestoneId])
   @@index([blockNumber])
@@ -163,21 +135,19 @@ model EscrowTransaction {
 }
 
 model Dispute {
-  id              String         @id @default(uuid())
-  milestoneId     String         @map("milestone_id")
-  raisedBy        String         @map("raised_by")
+  id              String    @id @default(uuid())
+  milestoneId     String    @map("milestone_id")
+  raisedBy        String    @map("raised_by")
   reason          String
-  status          String         @default("open") // open, under_review, resolved_...
-  resolutionNotes String?        @map("resolution_notes")
-  resolvedBy      String?        @map("resolved_by")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  resolvedAt      DateTime?      @map("resolved_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-
-  // Relations
-  milestone       Milestone      @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
-  raiser          User           @relation("DisputeRaiser", fields: [raisedBy], references: [id], onDelete: Restrict)
-  resolver        User?          @relation("DisputeResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+  status          String    @default("open")
+  resolutionNotes String?   @map("resolution_notes")
+  resolvedBy      String?   @map("resolved_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  resolvedAt      DateTime? @map("resolved_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  resolver        User?     @relation("DisputeResolver", fields: [resolvedBy], references: [id])
+  raiser          User      @relation("DisputeRaiser", fields: [raisedBy], references: [id])
+  milestone       Milestone @relation(fields: [milestoneId], references: [id])
 
   @@index([milestoneId])
   @@index([status])
@@ -185,16 +155,14 @@ model Dispute {
 }
 
 model Message {
-  id         String    @id @default(uuid())
-  projectId  String    @map("project_id")
-  senderId   String    @map("sender_id")
-  content    String
-  readAt     DateTime? @map("read_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  project    Project   @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  sender     User      @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  id        String    @id @default(uuid())
+  projectId String    @map("project_id")
+  senderId  String    @map("sender_id")
+  content   String
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  sender    User      @relation(fields: [senderId], references: [id])
+  project   Project   @relation(fields: [projectId], references: [id])
 
   @@index([projectId])
   @@index([senderId])

@@ -8,6 +8,9 @@ const router = Router();
 
 // Routes
 router.patch('/:id/submit', authenticateJWT, MilestonesController.submitMilestone);
+router.patch('/:id/approve', authenticateJWT, MilestonesController.approveMilestone);
+router.patch('/:id/refund', authenticateJWT, MilestonesController.refundMilestone);
+router.post('/:id/dispute', authenticateJWT, MilestonesController.raiseDispute);
 router.post('/:id/escrow', authenticateJWT, validate(milestoneSchemas.registerEscrow), MilestonesController.registerEscrow);
 router.get('/:id/escrow-metadata', authenticateJWT, MilestonesController.getEscrowMetadata);
 

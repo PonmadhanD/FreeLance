@@ -1,84 +1,115 @@
-import { db } from "../config/firebase";
-import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    doc,
-    getDoc,
-    updateDoc
-} from "firebase/firestore";
+import { API_BASE_URL } from "../config/api";
 
 export interface Proposal {
-    id?: string;
+    id: string;
     jobId: string;
     freelancerId: string;
     coverLetter: string;
-    proposedAmount: number;
+    proposedAmount: number | string;
     estimatedDuration: number;
     status: "pending" | "accepted" | "rejected" | "withdrawn";
     createdAt: string;
-    freelancer?: any;
+    updatedAt: string;
+    freelancer?: {
+        displayName: string;
+        walletAddress: string;
+        skills?: string[];
+        bio?: string;
+    };
+    job?: {
+        id: string;
+        title: string;
+        budget: number | string;
+        status: string;
+    };
 }
 
 export const ProposalsService = {
-    async submitProposal(data: Omit<Proposal, "id" | "createdAt" | "status">): Promise<string> {
-        // Check if already submitted
-        const q = query(
-            collection(db, "proposals"),
-            where("jobId", "==", data.jobId),
-            where("freelancerId", "==", data.freelancerId)
-        );
-        const existing = await getDocs(q);
+    async submitProposal(jobId: string, data: { coverLetter: string; proposedAmount: number; estimatedDuration?: number }): Promise<Proposal> {
+        const token = localStorage.getItem('cl_token');
+        const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/proposals`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: JSON.stringify(data),
+        });
 
-        if (!existing.empty) {
-            throw new Error("You have already submitted a proposal for this job");
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to submit proposal");
         }
 
-        const proposalData = {
-            ...data,
-            status: "pending",
-            createdAt: new Date().toISOString()
-        };
-
-        const docRef = await addDoc(collection(db, "proposals"), proposalData);
-        return docRef.id;
+        return await response.json();
     },
 
-    async getProposals(jobId: string): Promise<Proposal[]> {
-        const q = query(
-            collection(db, "proposals"),
-            where("jobId", "==", jobId),
-            orderBy("createdAt", "desc")
-        );
+    async getJobProposals(jobId: string): Promise<Proposal[]> {
+        const token = localStorage.getItem('cl_token');
+        const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/proposals`, {
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        });
 
-        const snapshot = await getDocs(q);
-        const proposals = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Proposal));
-
-        // Join with freelancer profile
-        const proposalsWithFreelancer = await Promise.all(proposals.map(async (p) => {
-            const freelancerRef = doc(db, "users", p.freelancerId.toLowerCase());
-            const freelancerSnap = await getDoc(freelancerRef);
-            return {
-                ...p,
-                freelancer: freelancerSnap.exists() ? freelancerSnap.data() : { displayName: "Unknown" }
-            };
-        }));
-
-        return proposalsWithFreelancer as Proposal[];
+        if (!response.ok) throw new Error("Failed to fetch proposals");
+        const result = await response.json();
+        return result.data;
     },
 
-    async getMyProposals(freelancerId: string): Promise<Proposal[]> {
-        const q = query(collection(db, "proposals"), where("freelancerId", "==", freelancerId));
-        const snapshot = await getDocs(q);
-        // Might want to join with Jobs here to show job titles
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Proposal));
+    async getMyProposals(): Promise<Proposal[]> {
+        const token = localStorage.getItem('cl_token');
+        const response = await fetch(`${API_BASE_URL}/proposals/my-proposals`, {
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch my proposals");
+        const result = await response.json();
+        return result.data;
     },
 
-    async updateProposalStatus(id: string, status: "accepted" | "rejected" | "withdrawn"): Promise<void> {
-        const docRef = doc(db, "proposals", id);
-        await updateDoc(docRef, { status });
+    async acceptProposal(id: string): Promise<{ proposal: Proposal; project: any }> {
+        const token = localStorage.getItem('cl_token');
+        const response = await fetch(`${API_BASE_URL}/proposals/${id}/accept`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to accept proposal");
+        }
+
+        return await response.json();
+    },
+
+    async rejectProposal(id: string): Promise<Proposal> {
+        const token = localStorage.getItem('cl_token');
+        const response = await fetch(`${API_BASE_URL}/proposals/${id}/reject`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        });
+
+        if (!response.ok) throw new Error("Failed to reject proposal");
+        return await response.json();
+    },
+
+    async withdrawProposal(id: string): Promise<Proposal> {
+        const token = localStorage.getItem('cl_token');
+        const response = await fetch(`${API_BASE_URL}/proposals/${id}/withdraw`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        });
+
+        if (!response.ok) throw new Error("Failed to withdraw proposal");
+        return await response.json();
     }
 };

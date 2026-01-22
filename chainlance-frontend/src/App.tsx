@@ -6,6 +6,7 @@ import MyProjects from './pages/MyProjects';
 import ProjectWorkspace from './pages/ProjectWorkspace';
 import AccountWallet from './pages/AccountWallet';
 import AdminPanel from './pages/AdminPanel';
+import FreelancerProfile from './pages/FreelancerProfile';
 import './App.css';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
             <Route path="/workspace/:projectId" element={<ProjectWorkspace />} />
             <Route path="/account" element={<AccountWallet />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/profile/:walletAddress" element={<FreelancerProfile />} />
           </Routes>
         </main>
       </div>

@@ -5,26 +5,43 @@
   position: relative;
 }
 
+/* Marketplace Page */
 .marketplace-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.marketplace-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-fg);
 }
 
 .search-filters {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .search-input,
 .filter-select {
-  padding: 0.75rem;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  color: #e0e0e0;
+  padding: 0.875rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-fg);
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px #dbeafe;
 }
 
 .search-input {
@@ -32,104 +49,92 @@
 }
 
 .job-card h3 {
-  color: #fff;
+  color: var(--color-fg);
   margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .job-description {
-  color: #b0b0b0;
-  margin-bottom: 1rem;
+  color: var(--color-fg-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .job-meta {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .budget {
-  color: #4ade80;
-  font-weight: 600;
+  color: var(--color-success);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .milestones {
-  color: #fb923c;
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .job-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #2a2a2a;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .client {
-  color: #666;
+  color: var(--color-fg-subtle);
   font-family: monospace;
-  font-size: 0.9rem;
-}
-
-.wallet-prompt-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.prompt-card {
-  background: #1a1a1a;
-  border: 2px solid #4a9eff;
-  border-radius: 16px;
-  padding: 3rem;
-  text-align: center;
-  max-width: 400px;
-}
-
-.connect-btn-large {
-  margin-top: 1.5rem;
-  padding: 1rem 2rem;
-  background: #4a9eff;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  cursor: pointer;
+  font-size: 0.85rem;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }
 
 /* Post Job Page */
 .post-job-container h1 {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  font-weight: 800;
 }
 
 .job-form {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-sm);
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .form-section {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .form-section h2 {
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
-  color: #4a9eff;
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .helper-text {
-  color: #666;
-  font-size: 0.9rem;
+  color: var(--color-fg-subtle);
+  font-size: 0.875rem;
   margin-bottom: 1rem;
 }
 
@@ -138,39 +143,53 @@
   gap: 1rem;
   align-items: center;
   margin-bottom: 1rem;
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 
 .milestone-number {
-  color: #666;
-  font-weight: 600;
+  color: var(--color-fg-subtle);
+  font-weight: 700;
+  min-width: 1.5rem;
 }
 
 .remove-btn {
-  background: #ef4444;
-  color: #fff;
+  background: #fee2e2;
+  color: var(--color-error);
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.add-milestone-btn {
-  background: transparent;
-  border: 2px dashed #4a9eff;
-  color: #4a9eff;
-  padding: 0.75rem;
-  border-radius: 8px;
-  width: 100%;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s;
 }
 
+.remove-btn:hover {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.add-milestone-btn {
+  background: #eff6ff;
+  border: 2px dashed var(--color-primary);
+  color: var(--color-primary);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
 .add-milestone-btn:hover {
-  background: rgba(74, 158, 255, 0.1);
+  background: #dbeafe;
 }
 
 .form-actions {
-  margin-top: 2rem;
+  margin-top: 3rem;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .explorer-link {
@@ -183,56 +202,60 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .trust-tracker {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .state-draft {
-  background: rgba(156, 163, 175, 0.2);
-  color: #9ca3af;
+  background: #f3f4f6;
+  color: var(--color-fg-muted);
 }
 
 .state-escrowed {
-  background: rgba(74, 222, 128, 0.2);
-  color: #4ade80;
+  background: #ecfdf5;
+  color: var(--color-success);
 }
 
 .state-paid {
-  background: rgba(74, 158, 255, 0.2);
-  color: #4a9eff;
+  background: #eff6ff;
+  color: var(--color-primary);
 }
 
 .state-disputed {
-  background: rgba(251, 146, 60, 0.2);
-  color: #fb923c;
+  background: #fef2f2;
+  color: var(--color-error);
 }
 
 .state-released {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
+  background: #f5f3ff;
+  color: #7c3aed;
 }
 
 .escrow-info {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .escrow-details {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .escrow-stat {
@@ -241,46 +264,61 @@
 }
 
 .stat-label {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
+  color: var(--color-fg-subtle);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-fg);
 }
 
 .stat-value.paid {
-  color: #4ade80;
+  color: var(--color-success);
 }
 
 .contract-address {
-  color: #666;
+  color: var(--color-fg-subtle);
   font-family: monospace;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  background: #f9fafb;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
 }
 
 .contract-address code {
-  color: #4a9eff;
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .milestones-kanban {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .kanban-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 .milestone-card {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.milestone-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .milestone-header {
@@ -292,13 +330,14 @@
 
 .milestone-card h3 {
   margin: 0.5rem 0;
-  color: #fff;
+  color: var(--color-fg);
+  font-weight: 700;
 }
 
 .milestone-amount {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #4ade80;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-success);
   margin: 1rem 0;
 }
 
@@ -309,54 +348,56 @@
 }
 
 .badge-pending {
-  background: rgba(156, 163, 175, 0.2);
-  color: #9ca3af;
+  background: #f3f4f6;
+  color: var(--color-fg-muted);
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .badge-in-progress {
-  background: rgba(74, 158, 255, 0.2);
-  color: #4a9eff;
+  background: #eff6ff;
+  color: var(--color-primary);
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .badge-completed {
-  background: rgba(74, 222, 128, 0.2);
-  color: #4ade80;
+  background: #ecfdf5;
+  color: var(--color-success);
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .badge-paid {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
+  background: #f5f3ff;
+  color: #7c3aed;
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-}
-
-.placeholder-section {
-  background: #1a1a1a;
-  border: 2px dashed #2a2a2a;
-  border-radius: 12px;
-  padding: 3rem;
-  text-align: center;
-  color: #666;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .raise-dispute-btn {
-  background: #ef4444;
-  color: #fff;
-  border: none;
+  background: #fef2f2;
+  color: var(--color-error);
+  border: 1px solid #fee2e2;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   margin-top: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.raise-dispute-btn:hover {
+  background: var(--color-error);
+  color: #fff;
 }
 
 /* My Projects */
@@ -364,64 +405,45 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .role-badge {
-  background: rgba(74, 158, 255, 0.2);
-  color: #4a9eff;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
+  background: #eff6ff;
+  color: var(--color-primary);
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.875rem;
 }
 
 .tabs {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid #2a2a2a;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .tab {
   background: transparent;
   border: none;
-  color: #666;
-  padding: 1rem 1.5rem;
+  color: var(--color-fg-subtle);
+  padding: 1rem 0.5rem;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
   transition: all 0.2s;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .tab:hover {
-  color: #4a9eff;
+  color: var(--color-primary);
 }
 
 .tab.active {
-  color: #4a9eff;
-  border-bottom-color: #4a9eff;
-}
-
-.project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.detail-row .label {
-  color: #666;
-}
-
-.detail-row .value {
-  font-family: monospace;
-  color: #e0e0e0;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .progress-section {
@@ -431,33 +453,40 @@
 .progress-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  color: #666;
+  margin-bottom: 0.75rem;
+  color: var(--color-fg-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .progress-bar {
-  background: #0a0a0a;
-  height: 8px;
-  border-radius: 10px;
+  background: #f3f4f6;
+  height: 10px;
+  border-radius: 9999px;
   overflow: hidden;
 }
 
 .progress-fill {
-  background: linear-gradient(90deg, #4a9eff, #a855f7);
+  background: var(--grad-escrow);
   height: 100%;
-  transition: width 0.3s;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .project-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .action-btn.secondary {
-  background: transparent;
-  border: 1px solid #4a9eff;
-  color: #4a9eff;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  color: var(--color-fg-muted);
+}
+
+.action-btn.secondary:hover {
+  background: #f9fafb;
+  border-color: var(--color-fg-subtle);
 }
 
 /* Admin Panel */
@@ -741,71 +770,84 @@
 }
 
 .status-confirmed {
-  background: rgba(74, 222, 128, 0.2);
-  color: #4ade80;
+  background: #ecfdf5;
+  color: var(--color-success);
 }
 
 .status-pending {
-  background: rgba(251, 146, 60, 0.2);
-  color: #fb923c;
+  background: #fff7ed;
+  color: var(--color-warning);
 }
 
 .status-failed {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: #fef2f2;
+  color: var(--color-error);
 }
 
 /* Job Details */
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 .main-content section {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .sidebar>div {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .milestone-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .milestone-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background: #0a0a0a;
-  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  background: #f9fafb;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 
 .milestone-title {
-  color: #e0e0e0;
+  color: var(--color-fg);
+  font-weight: 600;
 }
 
 .cover-letter-input {
   width: 100%;
-  padding: 1rem;
-  background: #0a0a0a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  color: #e0e0e0;
-  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-fg);
+  margin-bottom: 1.5rem;
   resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.cover-letter-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px #dbeafe;
 }
 
 .indicator-dot {

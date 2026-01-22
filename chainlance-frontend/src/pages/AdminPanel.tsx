@@ -1,66 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { Milestone } from '../services/milestones.service';
+import { MilestonesService } from '../services/milestones.service';
+import { API_BASE_URL } from '../config/api';
 
 type ResolutionAction = 'pay_freelancer' | 'refund_client' | null;
 
-interface DisputedJob {
-    id: string;
-    title: string;
-    client: string;
-    freelancer: string;
-    escrowAmount: number;
-    disputeReason: string;
-    milestoneInDispute: string;
-    evidenceLinks: string[];
-    raisedAt: string;
-}
-
 export default function AdminPanel() {
-    const [selectedJob, setSelectedJob] = useState<string | null>(null);
+    const [disputes, setDisputes] = useState<Milestone[]>([]);
+    const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
     const [resolutionAction, setResolutionAction] = useState<ResolutionAction>(null);
     const [resolving, setResolving] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const disputedJobs: DisputedJob[] = [
-        {
-            id: '1',
-            title: 'Website Redesign Project',
-            client: '0x742d...3e4f',
-            freelancer: '0xabc1...def2',
-            escrowAmount: 3000,
-            disputeReason: 'Client claims deliverables do not match requirements',
-            milestoneInDispute: 'Frontend Development',
-            evidenceLinks: ['https://example.com/evidence1', 'https://example.com/evidence2'],
-            raisedAt: '2026-01-16T10:30:00'
-        },
-        {
-            id: '2',
-            title: 'Mobile App Development',
-            client: '0x891a...7b2c',
-            freelancer: '0xdef3...ghi4',
-            escrowAmount: 8000,
-            disputeReason: 'Freelancer claims scope creep without additional payment',
-            milestoneInDispute: 'Backend Integration',
-            evidenceLinks: ['https://example.com/chat-logs'],
-            raisedAt: '2026-01-14T15:45:00'
+    useEffect(() => {
+        loadDisputes();
+    }, []);
+
+    const loadDisputes = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/disputes`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('cl_token')}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setDisputes(data);
+            } else {
+                console.error("Failed to fetch disputes");
+            }
+        } catch (error) {
+            console.error("Error loading disputes", error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
-    const selectedJobData = disputedJobs.find(j => j.id === selectedJob);
+    const selectedDispute = disputes.find(d => d.id === selectedDisputeId);
 
     const handleResolve = async () => {
-        if (!resolutionAction) {
+        if (!resolutionAction || !selectedDisputeId) {
             alert('Please select a resolution action');
             return;
         }
 
         setResolving(true);
-        // Simulate blockchain transaction
-        setTimeout(() => {
-            setResolving(false);
+        try {
+            if (resolutionAction === 'pay_freelancer') {
+                await MilestonesService.approveMilestone(selectedDisputeId);
+            } else {
+                await MilestonesService.refundMilestone(selectedDisputeId);
+            }
             alert(`Resolution executed: ${resolutionAction.replace('_', ' ').toUpperCase()}`);
-            setSelectedJob(null);
+            setSelectedDisputeId(null);
             setResolutionAction(null);
-        }, 2000);
+            await loadDisputes();
+        } catch (error: any) {
+            console.error("Resolution failed", error);
+            alert("Resolution failed: " + error.message);
+        } finally {
+            setResolving(false);
+        }
     };
+
+    if (loading) return <div className="admin-container"><p>Loading Disputes...</p></div>;
 
     return (
         <div className="admin-container">
@@ -71,32 +73,28 @@ export default function AdminPanel() {
 
             <div className="admin-content">
                 <section className="disputes-list-section">
-                    <h2>Disputed Jobs ({disputedJobs.length})</h2>
+                    <h2>Active Disputes ({disputes.length})</h2>
 
-                    {disputedJobs.length === 0 ? (
+                    {disputes.length === 0 ? (
                         <div className="empty-state">
-                            <p>No active disputes</p>
+                            <p>No active disputes found.</p>
                         </div>
                     ) : (
                         <div className="disputes-list">
-                            {disputedJobs.map(job => (
+                            {disputes.map(d => (
                                 <div
-                                    key={job.id}
-                                    className={`dispute-card ${selectedJob === job.id ? 'selected' : ''}`}
-                                    onClick={() => setSelectedJob(job.id)}
+                                    key={d.id}
+                                    className={`dispute-card ${selectedDisputeId === d.id ? 'selected' : ''}`}
+                                    onClick={() => setSelectedDisputeId(d.id)}
                                 >
                                     <div className="dispute-header">
-                                        <h3>{job.title}</h3>
+                                        <h3>Milestone: {d.title}</h3>
                                         <span className="dispute-badge">DISPUTED</span>
                                     </div>
                                     <div className="dispute-meta">
-                                        <span>Escrow: ${job.escrowAmount}</span>
+                                        <span>Value: ${Number(d.amount).toLocaleString()}</span>
                                         <span>•</span>
-                                        <span>{new Date(job.raisedAt).toLocaleDateString()}</span>
-                                    </div>
-                                    <div className="dispute-parties">
-                                        <span>Client: {job.client}</span>
-                                        <span>Freelancer: {job.freelancer}</span>
+                                        <span>Project #{d.projectId.slice(0, 8)}</span>
                                     </div>
                                 </div>
                             ))}
@@ -104,40 +102,25 @@ export default function AdminPanel() {
                     )}
                 </section>
 
-                {selectedJobData && (
-                    <section className="resolution-panel">
+                {selectedDispute && (
+                    <section className="resolution-panel glass-panel">
                         <h2>Resolution Details</h2>
 
                         <div className="evidence-section">
                             <h3>Dispute Information</h3>
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label">Milestone:</span>
-                                    <span className="info-value">{selectedJobData.milestoneInDispute}</span>
+                                    <span className="info-label">Title:</span>
+                                    <span className="info-value">{selectedDispute.title}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">Reason:</span>
-                                    <span className="info-value">{selectedJobData.disputeReason}</span>
+                                    <span className="info-label">Value:</span>
+                                    <span className="info-value">${Number(selectedDispute.amount).toLocaleString()}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">Escrow Amount:</span>
-                                    <span className="info-value">${selectedJobData.escrowAmount}</span>
+                                    <span className="info-label">Raised At:</span>
+                                    <span className="info-value">{new Date(selectedDispute.updatedAt).toLocaleString()}</span>
                                 </div>
-                            </div>
-
-                            <div className="evidence-links">
-                                <h4>Evidence</h4>
-                                {selectedJobData.evidenceLinks.map((link, index) => (
-                                    <a
-                                        key={index}
-                                        href={link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="evidence-link"
-                                    >
-                                        Evidence Link {index + 1} →
-                                    </a>
-                                ))}
                             </div>
                         </div>
 
@@ -158,7 +141,7 @@ export default function AdminPanel() {
                                         <div>
                                             <div className="option-title">Pay Freelancer</div>
                                             <div className="option-description">
-                                                Release escrow funds to freelancer's address
+                                                Force release of escrowed funds to freelancer.
                                             </div>
                                         </div>
                                     </div>
@@ -177,7 +160,7 @@ export default function AdminPanel() {
                                         <div>
                                             <div className="option-title">Refund Client</div>
                                             <div className="option-description">
-                                                Return remaining escrow to client's address
+                                                Return locked funds back to the client.
                                             </div>
                                         </div>
                                     </div>
@@ -202,7 +185,6 @@ export default function AdminPanel() {
                         <div className="spinner"></div>
                         <h3>Transaction Pending</h3>
                         <p>Executing admin resolution on blockchain...</p>
-                        <a href="#" className="explorer-link">View on Block Explorer →</a>
                     </div>
                 </div>
             )}
